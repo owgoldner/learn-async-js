@@ -1,1 +1,12 @@
 Explain the code execution based on the order of the messages logged in src/quiz/promise-2darray.txt.
+
+The worker thread created to run the promise asynchronously logs sum called right away and then we
+place the function to calculate the sum in the timers queue and return from the worker thread and log
+the promise object (which is still pending because it relies on the timer callback) and we do the same
+for the next function call. In this call, we don't set a timer and instead call reject right away, which
+sends the reject callback, handled by the catch block, to the microtask queue. Then we return from the
+worker thread, log the pending promise because the reject callback hasn't been handled yet, and move on
+to the microtask queue. Here we log our error message from the reject callback. Then we move on to the
+event loop and check our timer; once that's finished we move the callback to pending, and since we're not
+waiting on any polls we then execute that callback, which is when we log 'resolving ...'. Then we push the
+resolve callback to the microtask queue and we log 45 next because there's nothing else to do in the event loop.
